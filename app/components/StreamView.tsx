@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import axios from "axios";
 import LiteYouTubeEmbed from "react-lite-youtube-embed";
 import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
 import { YT_REGEX } from "@/lib/util";
+//@ts-ignore
+import YouTubePlayer from "youtube-player";
 
 interface Video {
   id: string;
@@ -24,11 +26,20 @@ interface Video {
   isUpVoted: boolean;
 }
 
-const StreamView = ({ creatorId }: { creatorId: string }) => {
+const StreamView = ({
+  creatorId,
+  playVideo = false,
+}: {
+  creatorId: string;
+  playVideo: boolean;
+}) => {
   const [videoLink, setVideoLink] = useState("");
   const [queue, setQueue] = useState<Video[]>([]);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(false);
+  const [playNextLoading, setPlayNextLoading] = useState(false);
+  const [currentURL, setCurrentURL] = useState<string>("");
+  const videoPlayerRef = useRef<HTMLDivElement>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +90,12 @@ const StreamView = ({ creatorId }: { creatorId: string }) => {
         a.upvotes < b.upvotes ? 1 : -1
       )
     );
+    setCurrentVideo((video) => {
+      if (video?.id === res.data.activeStream?.stream?.id) {
+        return video;
+      }
+      return res.data.activeStream.stream;
+    });
   }
 
   useEffect(() => {
@@ -89,11 +106,31 @@ const StreamView = ({ creatorId }: { creatorId: string }) => {
     }, 10000);
   }, []);
 
-  const [currentURL, setCurrentURL] = useState<string>("");
-
   useEffect(() => {
     setCurrentURL(window.location.href);
   }, []);
+
+  useEffect(() => {
+    if (!videoPlayerRef.current || !currentVideo) {
+      return;
+    }
+    let player = YouTubePlayer(videoPlayerRef.current);
+
+    // 'loadVideoById' is queued until the player is ready to receive API calls.
+    player.loadVideoById(currentVideo.extractedId);
+
+    // 'playVideo' is queue until the player is ready to received API calls and after 'loadVideoById' has been called.
+    player.playVideo();
+    function eventHandler(event: any) {
+      if (event.data === 0) {
+        playNext();
+      }
+    }
+    player.on("stateChange", eventHandler);
+    return () => {
+      player.destroy();
+    };
+  }, [currentVideo, videoPlayerRef]);
 
   const copyToClipboard = async () => {
     try {
@@ -111,6 +148,21 @@ const StreamView = ({ creatorId }: { creatorId: string }) => {
       //   variant: "destructive",
       //   duration: 3000,
       // })
+    }
+  };
+
+  const playNext = async () => {
+    try {
+      setPlayNextLoading(true);
+      const data = await fetch("/api/stream/next", {
+        method: "GET",
+      });
+      const res = await data.json();
+      setCurrentVideo(res.stream);
+      setPlayNextLoading(false);
+      setQueue((q) => q.filter((x) => x.id !== res.stream.id));
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -154,14 +206,26 @@ const StreamView = ({ creatorId }: { creatorId: string }) => {
         )}
         {/* Current video player */}
         <div className="aspect-video">
-          <iframe
-            width="100%"
-            height="100%"
-            src={`https://www.youtube.com/embed/${currentVideo?.extractedId}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
+          <h2 className="text-2xl font-bold text-white mb-2">Now Playing</h2>
+          {currentVideo ? (
+            <>
+            {/*@ts-ignore*/}
+              <div ref={videoPlayerRef} className="w-full" />
+            </>
+          ) : (
+            <p className="">No Video playing</p>
+          )}
         </div>
+
+        {playVideo && (
+          <Button
+            onClick={playNext}
+            className="mt-4"
+            disabled={playNextLoading}
+          >
+            {playNextLoading ? "Loading" : "Play next song"}
+          </Button>
+        )}
 
         {/* Queue */}
         <div className="space-y-4">
