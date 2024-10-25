@@ -3,14 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
+import { YT_REGEX } from "@/lib/util";
 
 const CreateStream = z.object({
   creatorId: z.string(),
   url: z.string(),
 });
-
-const YT_REGEX =
-  /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +32,6 @@ export async function POST(req: NextRequest) {
       a.width < b.width ? -1 : 1
     );
 
-
     const stream = await prismaClient.stream.create({
       data: {
         userId: data.creatorId,
@@ -42,20 +39,21 @@ export async function POST(req: NextRequest) {
         type: "Youtube",
         extractedId,
         smallImg:
-        (thumbnails.length > 1
+          (thumbnails.length > 1
             ? thumbnails[thumbnails.length - 2].url
-            : thumbnails[thumbnails.length - 1].url )??
-              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
+            : thumbnails[thumbnails.length - 1].url) ??
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
         bigImg:
-        (thumbnails[thumbnails.length - 1].url )??
+          thumbnails[thumbnails.length - 1].url ??
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
         title: title ?? "Can't find image",
       },
     });
 
     return NextResponse.json({
-      message: "Stream Added",
-      id: stream.id,
+      ...stream,
+      upvotes: 0,
+      isUpVoted: false,
     });
   } catch (error) {
     return NextResponse.json(
