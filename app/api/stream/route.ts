@@ -4,6 +4,7 @@ import { z } from "zod";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
 import { YT_REGEX } from "@/lib/util";
+import { getServerSession } from "next-auth";
 
 const CreateStream = z.object({
   creatorId: z.string(),
@@ -70,13 +71,43 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const creatorId = req.nextUrl.searchParams.get("creatorId");
 
+  const session = await getServerSession();
+
+  const user = await prismaClient.user.findFirst({
+    where: {
+      email: session?.user?.email || "",
+    },
+  });
+
+  if (!creatorId) {
+    return NextResponse.json({
+      message: "Error while fetching stream",
+    });
+  }
+
   const streams = await prismaClient.stream.findMany({
     where: {
       userId: creatorId ?? "",
     },
+    include: {
+      _count: {
+        select: {
+          upvotes: true,
+        },
+      },
+      upvotes: {
+        where: {
+          userId: user?.id,
+        },
+      },
+    },
   });
 
   return NextResponse.json({
-    streams,
+    stream: streams.map(({ _count, ...rest }) => ({
+      ...rest,
+      upvotes: _count.upvotes,
+      isUpVoted: rest.upvotes.length ? true : false,
+    })),
   });
 }
