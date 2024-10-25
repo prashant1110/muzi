@@ -3,14 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
+import { YT_REGEX } from "@/lib/util";
+import { getServerSession } from "next-auth";
 
 const CreateStream = z.object({
   creatorId: z.string(),
   url: z.string(),
 });
-
-const YT_REGEX =
-  /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +33,6 @@ export async function POST(req: NextRequest) {
       a.width < b.width ? -1 : 1
     );
 
-
     const stream = await prismaClient.stream.create({
       data: {
         userId: data.creatorId,
@@ -42,20 +40,21 @@ export async function POST(req: NextRequest) {
         type: "Youtube",
         extractedId,
         smallImg:
-        (thumbnails.length > 1
+          (thumbnails.length > 1
             ? thumbnails[thumbnails.length - 2].url
-            : thumbnails[thumbnails.length - 1].url )??
-              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
+            : thumbnails[thumbnails.length - 1].url) ??
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
         bigImg:
-        (thumbnails[thumbnails.length - 1].url )??
+          thumbnails[thumbnails.length - 1].url ??
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
         title: title ?? "Can't find image",
       },
     });
 
     return NextResponse.json({
-      message: "Stream Added",
-      id: stream.id,
+      ...stream,
+      upvotes: 0,
+      isUpVoted: false,
     });
   } catch (error) {
     return NextResponse.json(
@@ -72,13 +71,56 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const creatorId = req.nextUrl.searchParams.get("creatorId");
 
-  const streams = await prismaClient.stream.findMany({
+  const session = await getServerSession();
+
+  const user = await prismaClient.user.findFirst({
     where: {
-      userId: creatorId ?? "",
+      email: session?.user?.email || "",
     },
   });
 
+  if (!creatorId) {
+    return NextResponse.json({
+      message: "Error while fetching stream",
+    });
+  }
+
+  const [streams, activeStream] = await Promise.all([
+    await prismaClient.stream.findMany({
+      where: {
+        userId: creatorId ?? "",
+        played: false,
+      },
+      include: {
+        _count: {
+          select: {
+            upvotes: true,
+          },
+        },
+        upvotes: {
+          where: {
+            userId: user?.id,
+          },
+        },
+      },
+    }),
+    prismaClient.currentStream.findFirst({
+      where: {
+        userId: user?.id,
+      },
+      include: {
+        stream: true,
+      },
+    }),
+  ]);
+
   return NextResponse.json({
-    streams,
+    stream: streams.map(({ _count, ...rest }) => ({
+      ...rest,
+      upvotes: _count.upvotes,
+      isUpVoted: rest.upvotes.length ? true : false,
+    })),
+
+    activeStream: activeStream,
   });
 }
