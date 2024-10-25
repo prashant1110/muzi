@@ -22,17 +22,27 @@ model User {
 }
 
 model Stream {
-  id          String     @id @default(uuid())
-  type        StreamType
-  url         String
-  extractedId String
-  title       String
-  smallImg    String
-  bigImg      String
-  active      Boolean    @default(true)
-  upvotes     UpVote[]
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  id              String         @id @default(uuid())
+  type            StreamType
+  url             String
+  extractedId     String
+  title           String
+  smallImg        String
+  bigImg          String
+  played          Boolean        @default(false)
+  playedTimeStamp DateTime?
+  createdAt       DateTime       @default(now())
+  active          Boolean        @default(true)
+  upvotes         UpVote[]
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  currentStream   CurrentStream?
+}
+
+model CurrentStream {
+  userId   String  @id
+  streamId String? @unique
+  stream   Stream? @relation(fields: [streamId], references: [id])
 }
 
 model UpVote {
@@ -40,7 +50,7 @@ model UpVote {
   streamId String
   userId   String
   user     User   @relation(fields: [userId], references: [id])
-  stream   Stream @relation(fields: [streamId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   @@unique([streamId, userId])
 }

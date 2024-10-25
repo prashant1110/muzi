@@ -18,5 +18,5 @@ interface Video {
 const creatorId = "01e5c52b-94d1-4c53-90d0-e084234a37c9";
 
 export default function Component() {
-  return <StreamView creatorId={creatorId} />;
+  return <StreamView creatorId={creatorId} playVideo={true}/>;
 }
