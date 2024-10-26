@@ -19,6 +19,10 @@ model User {
   provider Provider
   stream   Stream[]
   upvote   UpVote[]
+  Space    Space?   @relation(fields: [spaceId], references: [id])
+  spaceId  String?
+  spaces   Space[]  @relation("UserSpaces")
+  createdSpaces Space[] @relation("CreatorSpaces")
 }
 
 model Stream {
@@ -37,6 +41,19 @@ model Stream {
   userId          String
   user            User           @relation(fields: [userId], references: [id])
   currentStream   CurrentStream?
+  spaceId         String?
+  space           Space?         @relation(fields: [spaceId], references: [id])
+}
+
+model Space {
+  id        String   @id @default(uuid())
+  name      String
+  creatorId String
+  streams   Stream[]
+  users     User[]   @relation("UserSpaces")
+  createdAt DateTime @default(now())
+  User      User[]
+  creator     User       @relation("CreatorSpaces", fields: [creatorId], references: [id])
 }
 
 model CurrentStream {
