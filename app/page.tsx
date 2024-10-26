@@ -1,21 +1,18 @@
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 //@ts-ignore
 import { Users, Radio, Headphones } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import {Appbar} from "@/components/Appbar";
 import Redirect from "./components/Redirect";
+import { CreateDialog } from "./components/CreateDialog";
 
 export default async function Home() {
-
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      <Appbar />
-      <Redirect/>
+    <div>
+      {/* <Redirect/> */}
       <main className="flex-1 py-12 md:py-24 lg:py-32">
-        <div className="container px-4 md:px-6">
+        <div className=" px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl/none">
@@ -30,22 +27,25 @@ export default async function Home() {
               <Button className="bg-purple-600 text-white hover:bg-purple-700">
                 <Link
                   href={{
-                    pathname: "/auth",
+                    pathname: "/dashboard",
                     query: { authType: "signUp" },
                   }}
                 >
                   Get Started
                 </Link>
               </Button>
-              <Button className="bg-white text-purple-400 hover:bg-white/90">
-                Learn More
+
+              <Button className="bg-purple-600 text-white hover:bg-purple-700">
+                Create Group
               </Button>
+
+              <CreateDialog title={"Join Group"} />
             </div>
           </div>
         </div>
       </main>
       <section className="w-full bg-gray-800 bg-opacity-50 py-12 md:py-24 lg:py-32">
-        <div className="container px-4 md:px-6">
+        <div className="px-4 md:px-6">
           <h2 className="mb-8 text-center text-2xl font-bold tracking-tighter text-white sm:text-3xl">
             Key Features
           </h2>
@@ -71,7 +71,7 @@ export default async function Home() {
         </div>
       </section>
       <section className="w-full py-12 md:py-24 lg:py-32">
-        <div className="container px-4 md:px-6">
+        <div className="px-4 md:px-6">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter text-white sm:text-4xl">
