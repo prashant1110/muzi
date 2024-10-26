@@ -11,16 +11,22 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
   ],
-  secret:process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     signIn: async (account: any) => {
       try {
-        await prismaClient.user.create({
-          data: {
-            email: account.user.email,
-            provider: "Google",
-          },
+        const existingUser = await prismaClient.user.findFirst({
+          where: { email: account.user.email },
         });
+
+        if (!existingUser) {
+          await prismaClient.user.create({
+            data: {
+              email: account.user.email,
+              provider: "Google",
+            },
+          });
+        }
       } catch (error) {
         NextResponse.json({
           message: "Unable to sign in",
