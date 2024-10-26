@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronUp, ChevronDown, Play, Share2 } from "lucide-react";
+import { ChevronUp, ChevronDown, Play, Share2, House } from "lucide-react";
 import axios from "axios";
 import LiteYouTubeEmbed from "react-lite-youtube-embed";
 import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
 import { YT_REGEX } from "@/lib/util";
 //@ts-ignore
 import YouTubePlayer from "youtube-player";
+import { useRouter } from "next/navigation";
 
 interface Video {
   id: string;
@@ -40,6 +41,7 @@ const StreamView = ({
   const [playNextLoading, setPlayNextLoading] = useState(false);
   const [currentURL, setCurrentURL] = useState<string>("");
   const videoPlayerRef = useRef<HTMLDivElement>();
+  const router=useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,14 +173,25 @@ const StreamView = ({
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between">
           <h1 className="text-4xl font-bold text-center mb-8">Song Voting</h1>
-          <Button
-            onClick={copyToClipboard}
-            aria-label="Share this page"
-            className="flex items-center space-x-2"
-          >
-            <Share2 className="h-4 w-4" />
-            <span>Share</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                router.push("/");
+              }}
+              aria-label="Share this page"
+              className="flex items-center space-x-2"
+            >
+              <House className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={copyToClipboard}
+              aria-label="Share this page"
+              className="flex items-center space-x-2"
+            >
+              <Share2 className="h-4 w-4" />
+              <span>Share</span>
+            </Button>
+          </div>
         </div>
 
         {/* Video submission form */}
