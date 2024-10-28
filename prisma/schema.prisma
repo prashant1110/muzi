@@ -14,15 +14,15 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(uuid())
-  email    String
-  provider Provider
-  stream   Stream[]
-  upvote   UpVote[]
-  Space    Space?   @relation(fields: [spaceId], references: [id])
-  spaceId  String?
-  spaces   Space[]  @relation("UserSpaces")
-  createdSpaces Space[] @relation("CreatorSpaces")
+  id            String   @id @default(uuid())
+  email         String   @unique
+  provider      Provider
+  stream        Stream[]
+  upvote        UpVote[]
+  Space         Space?   @relation(fields: [spaceId], references: [id])
+  spaceId       String?
+  spaces        Space[]  @relation("UserSpaces")
+  createdSpaces Space[]  @relation("CreatorSpaces")
 }
 
 model Stream {
@@ -46,20 +46,23 @@ model Stream {
 }
 
 model Space {
-  id        String   @id @default(uuid())
-  name      String
-  creatorId String
-  streams   Stream[]
-  users     User[]   @relation("UserSpaces")
-  createdAt DateTime @default(now())
-  User      User[]
-  creator     User       @relation("CreatorSpaces", fields: [creatorId], references: [id])
+  id            String          @id @default(uuid())
+  name          String
+  creatorId     String
+  streams       Stream[]
+  users         User[]          @relation("UserSpaces")
+  createdAt     DateTime        @default(now())
+  User          User[]
+  creator       User            @relation("CreatorSpaces", fields: [creatorId], references: [id])
+  currentStream CurrentStream[]
 }
 
 model CurrentStream {
   userId   String  @id
   streamId String? @unique
   stream   Stream? @relation(fields: [streamId], references: [id])
+  spaceId  String
+  space    Space   @relation(fields: [spaceId], references: [id])
 }
 
 model UpVote {

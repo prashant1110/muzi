@@ -9,6 +9,11 @@ export function Appbar({ showThemeSwitch = true, isSpectator = false }) {
   const session = useSession();
   const router = useRouter();
 
+  const handleLogout = () => {
+    signOut();
+    router.push("/");
+  };
+
   return (
     <div className="flex justify-between px-5 py-4 md:px-10 xl:px-20">
       <div
@@ -23,7 +28,7 @@ export function Appbar({ showThemeSwitch = true, isSpectator = false }) {
       {session.data?.user ? (
         <Button
           className="bg-purple-600 text-white hover:bg-purple-700"
-          onClick={() => signOut()}
+          onClick={() => handleLogout}
         >
           logout
         </Button>

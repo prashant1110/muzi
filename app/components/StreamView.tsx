@@ -12,6 +12,10 @@ import { YT_REGEX } from "@/lib/util";
 //@ts-ignore
 import YouTubePlayer from "youtube-player";
 import { useRouter } from "next/navigation";
+import { fetchSpace } from "../utils/fetchSpace";
+import { fetchUser } from "../utils/fetchUser";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 interface Video {
   id: string;
@@ -30,9 +34,11 @@ interface Video {
 const StreamView = ({
   creatorId,
   playVideo = false,
+  spaceId,
 }: {
   creatorId: string;
   playVideo: boolean;
+  spaceId: string | string[];
 }) => {
   const [videoLink, setVideoLink] = useState("");
   const [queue, setQueue] = useState<Video[]>([]);
@@ -40,8 +46,44 @@ const StreamView = ({
   const [loading, setLoading] = useState(false);
   const [playNextLoading, setPlayNextLoading] = useState(false);
   const [currentURL, setCurrentURL] = useState<string>("");
+  const [space, setSpace] = useState<any>();
+  const [user, setUser] = useState<any>();
   const videoPlayerRef = useRef<HTMLDivElement>();
-  const router=useRouter()
+  const router = useRouter();
+
+  const session = useSession();
+  const email = session.data?.user?.email;
+
+  useEffect(() => {
+    const getData = async () => {
+      if (spaceId) {
+        try {
+          const data = await fetchSpace(spaceId);
+          setSpace(data);
+        } catch (error) {
+          console.error("Error in fetching data:", error);
+        }
+      }
+    };
+
+    getData();
+  }, [spaceId]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      if (spaceId) {
+        try {
+          const data = await fetchUser(email);
+
+          setUser(data);
+        } catch (error) {
+          console.error("Error in fetching data:", error);
+        }
+      }
+    };
+
+    getUser();
+  }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +92,9 @@ const StreamView = ({
     const res = await fetch("/api/stream", {
       method: "POST",
       body: JSON.stringify({
-        creatorId: creatorId,
+        creatorId: user?.user?.id,
         url: videoLink,
+        spaceId: spaceId,
       }),
     });
 
@@ -84,7 +127,7 @@ const StreamView = ({
   };
 
   async function fetchStream() {
-    const res = await axios.get(`/api/stream/?creatorId=${creatorId}`, {
+    const res = await axios.get(`/api/stream/?spaceId=${spaceId}`, {
       withCredentials: true,
     });
     setQueue(
@@ -96,7 +139,7 @@ const StreamView = ({
       if (video?.id === res.data.activeStream?.stream?.id) {
         return video;
       }
-      return res.data.activeStream.stream;
+      return res.data.activeStream?.stream;
     });
   }
 
@@ -156,7 +199,7 @@ const StreamView = ({
   const playNext = async () => {
     try {
       setPlayNextLoading(true);
-      const data = await fetch("/api/stream/next", {
+      const data = await fetch(`/api/stream/next?spaceId=${spaceId}`, {
         method: "GET",
       });
       const res = await data.json();
@@ -167,6 +210,8 @@ const StreamView = ({
       console.log(error);
     }
   };
+
+  const isAdmin = user?.user?.id === space?.space?.creatorId;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-8">
@@ -221,16 +266,30 @@ const StreamView = ({
         <div className="aspect-video">
           <h2 className="text-2xl font-bold text-white mb-2">Now Playing</h2>
           {currentVideo ? (
-            <>
-            {/*@ts-ignore*/}
-              <div ref={videoPlayerRef} className="w-full" />
+            isAdmin ? (
+              <>
+                {/*@ts-ignore*/}
+                <div ref={videoPlayerRef} className="w-full" />
+              </>
+            ) : (
+              <>
+              <img
+                style={{height:"100%"}}
+                alt={currentVideo.bigImg}
+                src={currentVideo.bigImg}
+                className="h-72 w-full rounded object-cover"
+              />
+              <p className="mt-2 text-center font-semibold">
+                {currentVideo.title}
+              </p>
             </>
+            )
           ) : (
             <p className="">No Video playing</p>
           )}
         </div>
 
-        {playVideo && (
+        {isAdmin && (
           <Button
             onClick={playNext}
             className="mt-4"
@@ -271,13 +330,13 @@ const StreamView = ({
 
                   <span>{item.upvotes}</span>
                 </div>
-                <Button
+                {/* <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setCurrentVideo(item)}
                 >
                   <Play className="h-4 w-4" />
-                </Button>
+                </Button> */}
               </CardContent>
             </Card>
           ))}

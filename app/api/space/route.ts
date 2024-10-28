@@ -18,12 +18,41 @@ export async function POST(req: NextRequest) {
         creatorId: data.creatorId,
       },
     });
-    console.log(prismaClient)
     return NextResponse.json({
       ...space,
     });
   } catch (error) {
-    
+    return NextResponse.json(
+      {
+        message: error,
+      },
+      {
+        status: 411,
+      }
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const spaceId = req.nextUrl.searchParams.get("spaceId");
+
+    if (!spaceId) {
+      return NextResponse.json({
+        message: "Error while fetching stream",
+      });
+    }
+
+    const space = await prismaClient.space.findFirst({
+      where: {
+        id: spaceId,
+      },
+    });
+
+    return NextResponse.json({
+      space
+    })
+  } catch (error) {
     return NextResponse.json(
       {
         message: error,

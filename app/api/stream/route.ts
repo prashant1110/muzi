@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth";
 const CreateStream = z.object({
   creatorId: z.string(),
   url: z.string(),
+  spaceId: z.string(),
 });
 
 export async function POST(req: NextRequest) {
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
           thumbnails[thumbnails.length - 1].url ??
           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNNLEL-qmmLeFR1nxJuepFOgPYfnwHR56vcw&s",
         title: title ?? "Can't find image",
+        spaceId: data.spaceId,
       },
     });
 
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const creatorId = req.nextUrl.searchParams.get("creatorId");
+  const spaceId = req.nextUrl.searchParams.get("spaceId");
 
   const session = await getServerSession();
 
@@ -79,7 +81,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  if (!creatorId) {
+  if (!spaceId) {
     return NextResponse.json({
       message: "Error while fetching stream",
     });
@@ -88,7 +90,7 @@ export async function GET(req: NextRequest) {
   const [streams, activeStream] = await Promise.all([
     await prismaClient.stream.findMany({
       where: {
-        userId: creatorId ?? "",
+        spaceId: spaceId,
         played: false,
       },
       include: {
@@ -106,7 +108,7 @@ export async function GET(req: NextRequest) {
     }),
     prismaClient.currentStream.findFirst({
       where: {
-        userId: user?.id,
+       spaceId:spaceId
       },
       include: {
         stream: true,
