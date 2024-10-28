@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
           },
         },
       },
+      include: { users: true },
     });
 
     return NextResponse.json({
