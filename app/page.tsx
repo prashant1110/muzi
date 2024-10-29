@@ -34,12 +34,8 @@ export default async function Home() {
                   Get Started
                 </Link>
               </Button>
-
-              <Button className="bg-purple-600 text-white hover:bg-purple-700">
-                Create Group
-              </Button>
-
-              <CreateDialog title={"Join Group"} />
+              <CreateDialog title={"Create Group"} type={"create"}/>
+              <CreateDialog title={"Join Group"} type={"join"}/>
             </div>
           </div>
         </div>

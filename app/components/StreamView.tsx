@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronUp, ChevronDown, Play, Share2, House } from "lucide-react";
 import axios from "axios";
-import LiteYouTubeEmbed from "react-lite-youtube-embed";
 import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
-import { YT_REGEX } from "@/lib/util";
 //@ts-ignore
 import YouTubePlayer from "youtube-player";
 import { useRouter } from "next/navigation";
+import { fetchSpace } from "../utils/fetchSpace";
+import { fetchUser } from "../utils/fetchUser";
+import { useSession } from "next-auth/react";
+import Title from "./Title";
+import SubmissionForm from "./SubmissionForm";
+import VideoPreview from "./VideoPreview";
+import CurrentVideoPlayer from "./CurrentVideoPlayer";
+import UpcomingSongs from "./UpcomingSongs";
 
 interface Video {
   id: string;
@@ -27,21 +29,50 @@ interface Video {
   isUpVoted: boolean;
 }
 
-const StreamView = ({
-  creatorId,
-  playVideo = false,
-}: {
-  creatorId: string;
-  playVideo: boolean;
-}) => {
+const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
   const [videoLink, setVideoLink] = useState("");
   const [queue, setQueue] = useState<Video[]>([]);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(false);
   const [playNextLoading, setPlayNextLoading] = useState(false);
   const [currentURL, setCurrentURL] = useState<string>("");
+  const [space, setSpace] = useState<any>();
+  const [user, setUser] = useState<any>();
   const videoPlayerRef = useRef<HTMLDivElement>();
-  const router=useRouter()
+
+  const session = useSession();
+  const email = session.data?.user?.email;
+
+  useEffect(() => {
+    const getData = async () => {
+      if (spaceId) {
+        try {
+          const data = await fetchSpace(spaceId);
+          setSpace(data);
+        } catch (error) {
+          console.error("Error in fetching data:", error);
+        }
+      }
+    };
+
+    getData();
+  }, [spaceId]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      if (spaceId) {
+        try {
+          const data = await fetchUser(email);
+
+          setUser(data);
+        } catch (error) {
+          console.error("Error in fetching data:", error);
+        }
+      }
+    };
+
+    getUser();
+  }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +81,9 @@ const StreamView = ({
     const res = await fetch("/api/stream", {
       method: "POST",
       body: JSON.stringify({
-        creatorId: creatorId,
+        creatorId: user?.user?.id,
         url: videoLink,
+        spaceId: spaceId,
       }),
     });
 
@@ -84,7 +116,7 @@ const StreamView = ({
   };
 
   async function fetchStream() {
-    const res = await axios.get(`/api/stream/?creatorId=${creatorId}`, {
+    const res = await axios.get(`/api/stream/?spaceId=${spaceId}`, {
       withCredentials: true,
     });
     setQueue(
@@ -96,7 +128,7 @@ const StreamView = ({
       if (video?.id === res.data.activeStream?.stream?.id) {
         return video;
       }
-      return res.data.activeStream.stream;
+      return res.data.activeStream?.stream;
     });
   }
 
@@ -134,29 +166,10 @@ const StreamView = ({
     };
   }, [currentVideo, videoPlayerRef]);
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(currentURL);
-      // toast({
-      //   title: "URL Copied!",
-      //   description: "The page URL has been copied to your clipboard.",
-      //   duration: 3000,
-      // })
-    } catch (err) {
-      console.error("Failed to copy: ", err);
-      // toast({
-      //   title: "Copy failed",
-      //   description: "Unable to copy the URL. Please try again.",
-      //   variant: "destructive",
-      //   duration: 3000,
-      // })
-    }
-  };
-
   const playNext = async () => {
     try {
       setPlayNextLoading(true);
-      const data = await fetch("/api/stream/next", {
+      const data = await fetch(`/api/stream/next?spaceId=${spaceId}`, {
         method: "GET",
       });
       const res = await data.json();
@@ -168,119 +181,36 @@ const StreamView = ({
     }
   };
 
+  const isAdmin = user?.user?.id === space?.space?.creatorId;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between">
-          <h1 className="text-4xl font-bold text-center mb-8">Song Voting</h1>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => {
-                router.push("/");
-              }}
-              aria-label="Share this page"
-              className="flex items-center space-x-2"
-            >
-              <House className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={copyToClipboard}
-              aria-label="Share this page"
-              className="flex items-center space-x-2"
-            >
-              <Share2 className="h-4 w-4" />
-              <span>Share</span>
-            </Button>
+    <div className="text-white p-8">
+      <div className="max-w-screen-2xl mx-auto space-y-8">
+        <Title currentURL={currentURL} spaceId={spaceId} /> 
+        <div className="flex flex-col-reverse md:flex-row gap-4 ">
+          <div className="basis-2/3">
+            {/* Video submission form */}
+            <SubmissionForm
+              handleSubmit={handleSubmit}
+              videoLink={videoLink}
+              setVideoLink={setVideoLink}
+              loading={loading}
+            />
+            {/* Video preview */}
+            <VideoPreview videoLink={videoLink} loading={loading} />
+            {/* Queue */}
+            <UpcomingSongs queue={queue} handleVote={handleVote} />
           </div>
-        </div>
-
-        {/* Video submission form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            type="text"
-            placeholder="Enter YouTube video link"
-            value={videoLink}
-            onChange={(e) => setVideoLink(e.target.value)}
-            className="bg-white/10 border-white/20 text-white placeholder-white/50"
-          />
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Loading..." : "Add to Queue"}
-          </Button>
-        </form>
-
-        {/* Video preview */}
-        {videoLink && videoLink.match(YT_REGEX) && !loading && (
-          <Card className="bg-white/10 border-white/20">
-            <CardContent className="p-4">
-              <h2 className="text-xl font-semibold mb-2">Preview:</h2>
-              <LiteYouTubeEmbed title="" id={videoLink.split("?v=")[1]} />
-            </CardContent>
-          </Card>
-        )}
-        {/* Current video player */}
-        <div className="aspect-video">
-          <h2 className="text-2xl font-bold text-white mb-2">Now Playing</h2>
-          {currentVideo ? (
-            <>
-            {/*@ts-ignore*/}
-              <div ref={videoPlayerRef} className="w-full" />
-            </>
-          ) : (
-            <p className="">No Video playing</p>
-          )}
-        </div>
-
-        {playVideo && (
-          <Button
-            onClick={playNext}
-            className="mt-4"
-            disabled={playNextLoading}
-          >
-            {playNextLoading ? "Loading" : "Play next song"}
-          </Button>
-        )}
-
-        {/* Queue */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Upcoming Songs</h2>
-          {queue.map((item) => (
-            <Card key={item.id} className="bg-white/10 border-white/20">
-              <CardContent className="p-4 flex items-center space-x-4 text-white">
-                <img
-                  src={item.smallImg}
-                  alt={item.title}
-                  className="w-24 h-16 object-cover rounded"
-                />
-                <div className="flex-grow">
-                  <h3 className="font-semibold">{item.title}</h3>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      handleVote(item.id, item.isUpVoted ? false : true)
-                    }
-                  >
-                    {item.isUpVoted ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronUp className="h-4 w-4" />
-                    )}
-                  </Button>
-
-                  <span>{item.upvotes}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setCurrentVideo(item)}
-                >
-                  <Play className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="flex-1">
+            {/* Current video player */}
+            <CurrentVideoPlayer
+              currentVideo={currentVideo}
+              isAdmin={isAdmin}
+              videoPlayerRef={videoPlayerRef}
+              playNextLoading={playNextLoading}
+              playNext={playNext}
+            />
+          </div>
         </div>
       </div>
     </div>

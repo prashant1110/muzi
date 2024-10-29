@@ -1,9 +1,21 @@
 import { prismaClient } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession();
+  const spaceId = req.nextUrl.searchParams.get("spaceId");
+
+  if (!spaceId) {
+    return NextResponse.json(
+      {
+        message: "no space id",
+      },
+      {
+        status: 403,
+      }
+    );
+  }
 
   const user = await prismaClient.user.findFirst({
     where: {
@@ -24,8 +36,8 @@ export async function GET() {
 
   const mostUpVotedStream = await prismaClient.stream.findFirst({
     where: {
-      userId: user.id,
-      played:false
+      spaceId: spaceId,
+      played: false,
     },
     orderBy: {
       upvotes: {
@@ -38,6 +50,7 @@ export async function GET() {
     prismaClient.currentStream.upsert({
       where: {
         userId: user.id,
+        spaceId: spaceId,
       },
       update: {
         streamId: mostUpVotedStream?.id,
@@ -45,6 +58,7 @@ export async function GET() {
       create: {
         userId: user.id,
         streamId: mostUpVotedStream?.id,
+        spaceId: spaceId,
       },
     }),
     prismaClient.stream.update({
