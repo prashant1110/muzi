@@ -8,7 +8,7 @@ const page = () => {
       <section className="order-2 md:order-1 flex h-full w-full items-center justify-center bg-black p-6 md:py-24 lg:py-32">
         <div className="px-4 md:px-6">
           <h2 className="mb-8 text-center text-2xl font-bold tracking-tighter text-white sm:text-3xl">
-            Key Features
+            Key Featuress
           </h2>
           <div className="space-y-6">
             <div className="flex flex-col items-center space-y-3 text-center">
