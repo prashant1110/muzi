@@ -28,7 +28,7 @@ export function Appbar({ showThemeSwitch = true, isSpectator = false }) {
       {session.data?.user ? (
         <Button
           className="bg-purple-600 text-white hover:bg-purple-700"
-          onClick={() => handleLogout}
+          onClick={() => handleLogout()}
         >
           logout
         </Button>
