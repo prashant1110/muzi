@@ -3,8 +3,6 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-import Link from "next/link";
-
 export function Appbar() {
   const session = useSession();
   const router = useRouter();

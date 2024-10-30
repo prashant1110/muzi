@@ -16,10 +16,8 @@ import { useEffect, useState } from "react";
 import { fetchUser } from "../utils/fetchUser";
 
 export function CreateDialog({
-  title,
   type,
 }: {
-  title: string;
   type: string;
 }) {
   const router = useRouter();

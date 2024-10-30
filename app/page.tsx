@@ -1,9 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 //@ts-ignore
-import { Users, Radio, Headphones } from "lucide-react";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import Redirect from "./components/Redirect";
 import { CreateDialog } from "./components/CreateDialog";
 import Spaces from "./components/Spaces";
@@ -29,8 +24,8 @@ export default async function Home() {
               </p>
             </div>
             <div className="space-x-4">
-              <CreateDialog title={"Create Group"} type={"create"} />
-              <CreateDialog title={"Join Group"} type={"join"} />
+              <CreateDialog  type={"create"} />
+              <CreateDialog  type={"join"} />
             </div>
           </div>
         </div>
