@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React from "react";
+import Skeleton from "./Skeleton";
 
 interface Video {
   id: string;
@@ -24,21 +25,35 @@ const UpcomingSongs = ({
   queue: Video[];
   handleVote: (id: string, isUpVoted: Boolean) => void;
 }) => {
+
+  if (queue.length === 0) {
+    return (
+      <Card className="bg-black/10 border-black/20 mt-4">
+        <CardContent className="p-4 flex items-center space-x-4 text-black flex-wrap gap-2">
+         No Music in list
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4 mt-4">
       <h2 className="text-2xl font-semibold">Upcoming Songs</h2>
       {queue.map((item) => (
-        <Card key={item.id} className="bg-white/10 border-white/20">
-          <CardContent className="p-4 flex items-center space-x-4 text-white flex-wrap gap-2">
+        <Card key={item.id} className="bg-black/10 border-black/20">
+          <CardContent className="p-4 flex items-center space-x-4 text-black flex-wrap gap-2">
             <img
               src={item.smallImg}
               alt={item.title}
               className="w-24 h-16 object-cover rounded"
             />
-            <div className="flex-grow"  style={{marginLeft:0}}>
+            <div className="flex-grow" style={{ marginLeft: 0 }}>
               <h3 className="font-semibold">{item.title}</h3>
             </div>
-            <div className="flex items-center space-x-2" style={{marginLeft:0}}>
+            <div
+              className="flex items-center space-x-2"
+              style={{ marginLeft: 0 }}
+            >
               <Button
                 variant="ghost"
                 size="icon"
@@ -70,3 +85,5 @@ const UpcomingSongs = ({
 };
 
 export default UpcomingSongs;
+
+// AIzaSyBGz3C2Nf9JixzBRyPLX_LA-K7ANSps4vo

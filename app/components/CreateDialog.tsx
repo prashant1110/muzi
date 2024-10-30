@@ -27,7 +27,6 @@ export function CreateDialog({ title, type }: { title: string; type: string }) {
     const getUser = async () => {
       try {
         const data = await fetchUser(session.data?.user?.email);
-
         setUser(data);
       } catch (error) {
         console.error("Error in fetching data:", error);
@@ -49,8 +48,6 @@ export function CreateDialog({ title, type }: { title: string; type: string }) {
     router.push(`/dashboard/${spaceId}`);
   };
 
-  console.log(user?.user?.id);
-
   const createGroup = async () => {
     if (!user) {
       return;
@@ -69,8 +66,8 @@ export function CreateDialog({ title, type }: { title: string; type: string }) {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button className="bg-purple-600 text-white hover:bg-purple-700">
+      <DialogTrigger asChild className="mt-2 ml-0">
+        <Button className="bg-white text-black hover:bg-gray-200">
           {type === "join" ? "Join Group" : "Create Group"}
         </Button>
       </DialogTrigger>

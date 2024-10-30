@@ -14,6 +14,7 @@ import SubmissionForm from "./SubmissionForm";
 import VideoPreview from "./VideoPreview";
 import CurrentVideoPlayer from "./CurrentVideoPlayer";
 import UpcomingSongs from "./UpcomingSongs";
+import Skeleton from "./Skeleton";
 
 interface Video {
   id: string;
@@ -39,6 +40,7 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
   const [space, setSpace] = useState<any>();
   const [user, setUser] = useState<any>();
   const videoPlayerRef = useRef<HTMLDivElement>();
+  const [test, setTest] = useState(false);
 
   const session = useSession();
   const email = session.data?.user?.email;
@@ -116,9 +118,11 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
   };
 
   async function fetchStream() {
+    setTest(true);
     const res = await axios.get(`/api/stream/?spaceId=${spaceId}`, {
       withCredentials: true,
     });
+    setTest(false);
     setQueue(
       res?.data?.stream.sort((a: any, b: any) =>
         a.upvotes < b.upvotes ? 1 : -1
@@ -135,9 +139,9 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
   useEffect(() => {
     fetchStream();
 
-    setInterval(() => {
-      fetchStream();
-    }, 10000);
+    // setInterval(() => {
+    //   fetchStream();
+    // }, 10000);
   }, []);
 
   useEffect(() => {
@@ -184,9 +188,9 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
   const isAdmin = user?.user?.id === space?.space?.creatorId;
 
   return (
-    <div className="text-white p-8">
+    <div className="text-black p-8">
       <div className="max-w-screen-2xl mx-auto space-y-8">
-        <Title currentURL={currentURL} spaceId={spaceId} /> 
+        <Title currentURL={currentURL} spaceId={spaceId} />
         <div className="flex flex-col-reverse md:flex-row gap-4 ">
           <div className="basis-2/3">
             {/* Video submission form */}
@@ -199,7 +203,13 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
             {/* Video preview */}
             <VideoPreview videoLink={videoLink} loading={loading} />
             {/* Queue */}
-            <UpcomingSongs queue={queue} handleVote={handleVote} />
+            {test ? (
+              <div className="mt-4">
+                <Skeleton />
+              </div>
+            ) : (
+              <UpcomingSongs queue={queue} handleVote={handleVote} />
+            )}
           </div>
           <div className="flex-1">
             {/* Current video player */}
