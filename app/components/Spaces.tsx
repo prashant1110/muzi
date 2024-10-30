@@ -7,9 +7,7 @@ import { fetchUser } from "../utils/fetchUser";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,

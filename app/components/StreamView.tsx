@@ -5,7 +5,6 @@ import axios from "axios";
 import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
 //@ts-ignore
 import YouTubePlayer from "youtube-player";
-import { useRouter } from "next/navigation";
 import { fetchSpace } from "../utils/fetchSpace";
 import { fetchUser } from "../utils/fetchUser";
 import { useSession } from "next-auth/react";
@@ -94,7 +93,7 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
     setVideoLink("");
   };
 
-  const handleVote = (id: string, isUpVoted: Boolean) => {
+  const handleVote = (id: string, isUpVoted: boolean) => {
     setQueue(
       queue
         .map((item) =>
@@ -152,7 +151,7 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
     if (!videoPlayerRef.current || !currentVideo) {
       return;
     }
-    let player = YouTubePlayer(videoPlayerRef.current);
+    const player = YouTubePlayer(videoPlayerRef.current);
 
     // 'loadVideoById' is queued until the player is ready to receive API calls.
     player.loadVideoById(currentVideo.extractedId);

@@ -1,7 +1,6 @@
 import { prismaClient } from "@/lib/db";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { signIn } from "next-auth/react";
 import { NextResponse } from "next/server";
 export const authOptions = {
   // Configure one or more authentication providers
@@ -29,7 +28,7 @@ export const authOptions = {
         }
       } catch (error) {
         NextResponse.json({
-          message: "Unable to sign in",
+          message: error,
         });
       }
 
