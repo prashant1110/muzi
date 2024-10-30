@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 
 import Link from "next/link";
 
-export function Appbar({ showThemeSwitch = true, isSpectator = false }) {
+export function Appbar() {
   const session = useSession();
   const router = useRouter();
 
   const handleLogout = () => {
     signOut();
-    router.push("/");
+    router.push('/signin');
   };
 
   return (
@@ -20,21 +20,21 @@ export function Appbar({ showThemeSwitch = true, isSpectator = false }) {
         onClick={() => {
           router.push("/home");
         }}
-        className={`flex flex-col justify-center text-lg font-bold hover:cursor-pointer text-white`}
+        className={`flex flex-col justify-center text-lg font-bold hover:cursor-pointer text-black`}
       >
         Muzer
       </div>
 
       {session.data?.user ? (
         <Button
-          className="bg-purple-600 text-white hover:bg-purple-700"
+          className="bg-black text-white hover:bg-black-700"
           onClick={() => handleLogout()}
         >
           logout
         </Button>
       ) : (
         <Button
-          className="bg-purple-600 text-white hover:bg-purple-700"
+          className="bg-black text-white hover:bg-black-700"
           onClick={() => signIn()}
         >
           Sign in

@@ -11,12 +11,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchUser } from "../utils/fetchUser";
 
-export function CreateDialog({ title, type }: { title: string; type: string }) {
+export function CreateDialog({
+  title,
+  type,
+}: {
+  title: string;
+  type: string;
+}) {
   const router = useRouter();
   const [spaceId, setSpaceId] = useState("");
   const [name, setName] = useState("");

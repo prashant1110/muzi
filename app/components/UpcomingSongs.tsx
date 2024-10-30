@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React from "react";
-import Skeleton from "./Skeleton";
 
 interface Video {
   id: string;
@@ -23,7 +22,7 @@ const UpcomingSongs = ({
   handleVote,
 }: {
   queue: Video[];
-  handleVote: (id: string, isUpVoted: Boolean) => void;
+  handleVote: (id: string, isUpVoted: boolean) => void;
 }) => {
 
   if (queue.length === 0) {
