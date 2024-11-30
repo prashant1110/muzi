@@ -27,10 +27,11 @@ const SubmissionForm = ({
               part: "snippet",
               maxResults: 10,
               q: searchTerm,
-              key: process.env.YOUTUBE_API_KEY,
+              key: process.env.REACT_APP_YOUTUBE_API_KEY,
             },
           }
         );
+        console.log(response)
         setSuggestions(response.data.items); // Set the video suggestions
       } catch (error) {
         console.error("Error fetching YouTube suggestions:", error);
@@ -49,7 +50,7 @@ const SubmissionForm = ({
   const debouncedFetch = useCallback(
     debounce((searchTerm: string) => {
       fetchYouTubeSuggestions(searchTerm);
-    }, 300), // 300 ms delay
+    }, 500), // 300 ms delay
     []
   );
 

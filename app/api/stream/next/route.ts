@@ -49,14 +49,15 @@ export async function GET(req: NextRequest) {
   await Promise.all([
     prismaClient.currentStream.upsert({
       where: {
-        userId: user.id,
-        spaceId: spaceId,
+        userId: user?.id,
       },
       update: {
+        userId: user?.id,
         streamId: mostUpVotedStream?.id,
+        spaceId: spaceId,
       },
       create: {
-        userId: user.id,
+        userId: user?.id,
         streamId: mostUpVotedStream?.id,
         spaceId: spaceId,
       },

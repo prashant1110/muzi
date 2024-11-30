@@ -28,6 +28,7 @@ export function CreateDialog({
 
   useEffect(() => {
     const getUser = async () => {
+      if(!session) return;
       try {
         const data = await fetchUser(session.data?.user?.email);
         setUser(data);

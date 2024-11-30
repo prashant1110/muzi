@@ -62,6 +62,7 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
   useEffect(() => {
     const getUser = async () => {
       if (spaceId) {
+        if(!email) return;
         try {
           const data = await fetchUser(email);
 
@@ -168,7 +169,7 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
       player.destroy();
     };
   }, [currentVideo, videoPlayerRef]);
-
+console.log(spaceId)
   const playNext = async () => {
     try {
       setPlayNextLoading(true);
@@ -176,6 +177,7 @@ const StreamView = ({ spaceId }: { spaceId: string | string[] }) => {
         method: "GET",
       });
       const res = await data.json();
+      console.log(res)
       setCurrentVideo(res.stream);
       setPlayNextLoading(false);
       setQueue((q) => q.filter((x) => x.id !== res.stream.id));
